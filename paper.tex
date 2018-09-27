@@ -164,6 +164,30 @@ computer program. The difference between a trained model and a human
 authored program is one of method: a trained model is learned by an
 algorithm while a human authored program is written manually.
 
+While models may be represented in part by traditional installable
+software---e.g. a TensorFlow program that imperatively defines a model
+graph structure when run---models require more to be construed as
+reusable code: \emph{models must be trainable on novel data}.
+
+Table \ref{software-vs-models} compares traditional software with
+reusable models.
+
+\begin{table}[h!]
+  \begin{center}
+    \caption{Traditional software vs reusable models.}
+    \label{software-vs-models}
+    \begin{tabular}{l|l}
+      Traditional software & Installed code
+      Reusable models & Installed code + trainable on novel data
+    \end{tabular}
+  \end{center}
+\end{table}
+
+The remainder of this paper will outline an approach to package
+management applied to machine learning models that incorporates
+\emph{model operations} and \emph{run management} as a central enabler
+of model code reuse.
+
 
 TODO:
 

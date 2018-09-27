@@ -4,11 +4,11 @@
 
 - latex
 - letexmk
+- xzdec (required by tlmgr)
 
 Latex packages:
 
 - subfigure
-
 
 On Ubuntu:
 
@@ -16,5 +16,10 @@ On Ubuntu:
 apt install -y \
   texlive-latex-base \
   texlive-latex-recommended \
-  latexmk
+  latexmk \
+  xzdec
+tlmgr init-usertree
+tlmgr option repository ftp://tug.org/historic/systems/texlive/2017/tlnet-final
+tlmgr install \
+  subfigure
 ```
