@@ -5,6 +5,16 @@
 \usepackage{subfigure}
 \usepackage{booktabs}
 \usepackage{hyperref}
+\usepackage{listings}
+
+\lstset{
+  basicstyle=\footnotesize\ttfamily,
+  breaklines=true,
+  captionpos=b,
+  framextopmargin=5pt,
+  framexbottommargin=5pt,
+  frame=tb
+}
 
 % Use the following line for the initial blind version submitted for review:
 \usepackage{sysml2019}
@@ -169,94 +179,315 @@ software---e.g. a TensorFlow program that imperatively defines a model
 graph structure when run---models require more to be construed as
 reusable code: \emph{models must be trainable on novel data}.
 
-Table \ref{software-vs-models} compares traditional software with
-reusable models.
-
-\begin{table}[h!]
-  \begin{center}
-    \caption{Traditional software vs reusable models.}
-    \label{software-vs-models}
-    \begin{tabular}{l|l}
-      Traditional software & Installed code
-      Reusable models & Installed code + trainable on novel data
-    \end{tabular}
-  \end{center}
-\end{table}
-
-The remainder of this paper will outline an approach to package
-management applied to machine learning models that incorporates
-\emph{model operations} and \emph{run management} as a central enabler
-of model code reuse.
-
-
-TODO:
-
-- What problem is being solved?
-
-Need to define reuse. Start with traditional softwar reuse and make it
-clear that Guild addresses model reuse. What is model reuse?
-
-- How package managers facilitate code reuse
-
-Apply analogy of system packaging and the importance of formalizing
-the process with protocols and reference implementations.
+The remainder of this paper will outline an approach to package that
+incorporates \emph{model operations} and \emph{run management} as a
+central enabler of code reuse for machine learning models.
 
 \subsection{Related Work}
 
-- How machine learning models are distributed today (pip, GitHub
-projects)
+\subsubsection{Model zoos}
 
-- Packaging tools
+A common approach to sharing and reusing machine learning models is a
+\emph{model zoo}---an online repository of reusable models that
+includes source code, examples, documentation, and in some cases
+pretrained models. The \href{Caffe Model Zoo}{Caffe Model Zoo} was one
+of the first model zoos and has inspired serveral others (ref).
 
-- Frameworks and libraries
+Model zoos encourage code reuse by consolidating related models
+(e.g. based on underlying library implementation or application
+domain) and providing consistent documentation and repeatable methods
+for using the models.
 
-- TensorFlow Hub
+Model zoos, however, do not typically provide tools for packaging,
+distributing, and using models, beyond those of publishing source code
+and documentation (e.g. GitHub, web sites, etc.)
 
-- Keras Applications
+\subsubsection{TensorFlow Hub and Keras Applications}
 
-- ???
+\href{https://www.tensorflow.org/hub/}{TensorFlow Hub modules} and
+\href{https://keras.io/applications/}{Keras Applications} are examples
+of framework level facilities that provide a higher degree of model
+reuse vis-\'a-vis model zoos. Both TensorFlow Hub modules and Keras
+application support tools and patterns for packaging, distributing,
+and using model source code and associated pretrained models. They
+emphasize the use of \emph{transfer learning} where applicable for
+training models on novel datasets.
+
+\subsubsection{Software packages and source coderepositories}
+
+Models are commonly reused through traditional software distribution
+channels: packages and source code repositories. In both cases, model
+source code is provided along with varying levels of documentation and
+supporting tools. Unlike model zoos and framework packages, there is
+little consistency in quality of code reuse available through these
+channels. Developers are left to their own accord to find and use
+available models.
 
 \subsection{Differences}
 
-- How is Guild different from these cited projects?
+Guild AI combines elements from model zoos, framework packages, and
+traditional software channels to provide a state of the art facility
+for packaging, distributing and using machine learning models.
 
-- Include model and operation definitions
+As with model zoos, users can discover Guild AI models, including
+documentation on their use. Guild AI additionally supports
+installation and direct use of models through operations.
 
-- Reuse through distribution and patching
+Guild AI superficially resembles TensorFlow Hub in that users can
+discover, install, and use models quickly and easily. Guild AI however
+differs considerably in its implementation. Guild AI does not present
+a language level interface but instead defines a set of conventions
+that are supported through configuration. Guild AI packaging
+facilities can be applied to any machine learning model
+implementation.
 
-- Federation (protocol driven, intelligence moved to the perimeter).
+Guild AI also supports the well established practice of package
+maintenence, where a third party can create usable packages without
+necessarily coordinating with model developers. This is discussed in
+detail in Section \ref{sec:package-maintainer}.
+
+As with traditional software packages and source code repositories,
+Guild AI supports a federated approach to software distriution. Users
+are free to use Guild AI to create and distribute reusable models in a
+variety of ways. Refer to Section \ref{sec:use-cases} for coverage of
+various use case.
 
 \section{Concepts}
 
+This paper relies on a number of core concepts, which are defined
+below.
+
 \subsection{Projects}
+
+A \emph{project} is a directory that contains model related
+code. Model developers maintain projects for their models. Model users
+maintain projects for the code that works with models, possibly
+training them or otherwise incorporating them into an application.
+
+Projects are central to model development and use. Guild AI supports
+project based workflow as described in Section
+\ref{sec:streamline-workflow}.
+
+\subsection{Guild File}
+
+A \emph{Guild file} is a plain text file containing Guild AI related
+configuration. The file is named \verb|guild.yml| and is typically
+located in the root directory of a Guild AI enabled project.
+
+Figure \ref{fig:guild-file} illustrates a simple Guild file.
+
+\begin{figure}
+{\footnotesize
+\begin{verbatim}
+ model: mnist
+ description:
+   Logistic regression classifier
+   of MNIST digits
+ operations:
+   train:
+     main: train_mnist
+     flags:
+       batchs-size: 32
+       train-steps: 1000
+   evaluate:
+     main: eval_mnist
+\end{verbatim}}
+\caption{Guild file example}
+\label{fig:guild-file}
+\end{figure}
 
 \subsection{Packages}
 
+A Guild AI \emph{package} is a Python wheel distribution (ref) that
+was generated using the \verb|guild package| command. Guild AI
+packages are no different from standard Python wheel distributions and
+are generated using \verb|setuptools|. However, they contain Guild AI
+specific entry points that effectively publish the models they
+contain.
+
 \subsection{Models}
 
+A \emph{model} in Guild AI is a representation of a machine learning
+model that is defined in a Guild file. Models define \emph{operations}
+(Section \ref{sec:operations}) that perform model related tasks such
+as training or evaluating as well as \emph{resources} (Section
+\ref{sec:resources}) that operations may require.
+
+Models may be defined according to the underlying architecture or
+intended use of the model. Guild AI does not prescribe any formal
+meaning to the term \emph{model} or what operations are supported.
+
 \subsection{Operations}
+\label{sec:operations}
+
+An \emph{operation} is an action that can be performed on a
+model. Operations are part of a model definition.
+
+Guild AI does not prescribe any particular set of operations that must
+be defined for a model. Model developers are free to name operations
+as they see fit, though Guild AI does encourage naming conventions.
+
+The \verb|train| operation---the act of training a model from
+scratch---for example, is an operation that most models
+support. However, the \verb|transfer-learn| operation---the act of
+transfering knowledge learned in one domain to another domain---is a
+form of training, but frequently appears in Guild AI models as an
+operation distinct from \verb|train|.
 
 \subsection{Flags}
 
+\emph{Flags} are parameters that can be set or modified by users when
+they run an operation. Flags are used as inputs to the underlying code
+that implements an operation.
+
 \subsection{Resources}
+\label{sec:resources}
+
+A Guild AI \emph{resource} represents a set of source files that can
+be made available as inputs to a model operation. Resources play a key
+role in Guild AI's ability to effective use models. Resources can be
+used to resolve project files, download files from URLs, unpack
+archives, and reference files generated by other operation.
+
+Figure \ref{fig:resource} illustrates a resource definition for a
+model. The resource \verb|idx-data| defines four source files that
+will be made available to any operation that requires that resource.
+
+\begin{figure}
+{\footnotesize
+\begin{verbatim}
+ model: mnist
+ resources:
+   idx-data:
+     description:
+       MNIST dataset in compressed
+       IDX format
+     sources:
+       - train-images-idx3-ubyte.gz
+       - train-labels-idx1-ubyte.gz
+       - t10k-images-idx3-ubyte.gz
+       - t10k-labels-idx1-ubyte.gz
+\end{verbatim}}
+\caption{Model resource example}
+\label{fig:resource}
+\end{figure}
 
 \subsection{Runs}
 
+A \emph{run} is a file system artifact---specifically a directory
+created and managed by Guild AI---that contains metadata and files
+generated by an operation. A run may also refer to the operation
+system process associated with a running operation.
+
+Runs are described in detail in Section \ref{sec:runs}.
+
 \subsection{Environments}
+
+Guild AI supports \emph{environments}, which are isolated runtime
+environments used for installing and using models. Guild AI supports
+environments created using
+\href{https://virtualenv.pypa.io}{\emph{virtualenv}}.
 
 \subsection{Workflows}
 
-\section{Use Cases}
+Guild AI \emph{workflows} are patterns of model use that are enabled
+by running operations in specific order. Worflows are not currently
+formal constructs in Guild AI but are referenced by convention or
+documented usage.
 
-\subsection{Publish a Model for Reuse}
+\section{Use Cases}
+\label{sec:use-cases}
+
+The package management facilities in Guild AI enable a number of use
+cases, which are described below. In each case, the following roles
+may be referenced:
+
+\begin{description}
+    \item[user] person using a model developed by someone else
+    \item[developer] person developing a model, either from scratch or
+      adapting the work of others
+    \item[packager] person neither using nor developing a model but
+      who packages models from developers for use by users
+\end{description}
+
+\subsection{Publish a Model for Use}
+
+A developer may encourage others to use her model by documenting the
+steps needed to install, adapt, and use it. She may be motivated to
+simplify the user experience so that her work is more easily and
+succesfully applied. The benefit to her may be quality feedback from
+expert users, improved reputation, a sense of contribution, or her
+colleagues may simply expect that work be documented and easy to use.
+
+While documenting the steps needed to use a model is undoubtedly
+helpful, the process is still burdensome for both the developer and
+her users. Guild AI can be used to simultaenously document model use
+but also directly support its use through model operations.
+
+Consider these instructions for model use, which might be documented
+for a project:
+
+{\footnotesize
+\begin{verbatim}
+1. Install required packages
+2. Download the raw data
+3. Prepare the raw data for training
+4. Train the model
+5. Export the trained model for deployment
+\end{verbatim}}
+
+While these steps provide invaulable information, they still rely on
+the user to carefully execute them and troubleshoot issues as they
+arise. The process, while thoroughly documented, can take time and is
+subject to error at any step.
+
+Guild AI can be used to both document and automate these
+steps. Listing~\ref{lst:published-model} illustrates a Guild file that
+might be used to codify the steps as model operations, which are both
+discoverable and runnable.
+
+\begin{lstlisting}[caption=whatever,label={lst:published-model}]
+model: sample
+operations:
+  prepare-data:
+    description:
+      Prepare data for training
+    main: prepare_data
+    requires: raw-data
+  train:
+    description: Train model
+    main: train
+    requires: prepared-data
+  export:
+    description:
+      Export model for deployment
+    main: export
+    requires: trained-model
+resources:
+  raw-data:
+    description: Raw data for training
+    sources:
+      - url: http://mydata.com/raw.tgz
+  prepare-data:
+    description: Prepared data
+    sources:
+      - operation: prepare-data
+  trained-model:
+    description: Trained model
+    sources:
+      - operation: train
+\end{lstlisting}
+
 
 \subsection{Use a Published Model}
 
 \subsection{Package Third Party Models}
+\label{sec:package-maintainer}
 
 \subsection{Team Collaboration}
 
 \subsection{Streamline Model Developer Workflow}
+\label{sec:streamline-workflow}
 
 \subsection{Manage Run Artifacts}
 
@@ -277,6 +508,7 @@ projects)
 \subsection{Exporting Model Artifacts}
 
 \section{Managing Runs}
+\label{sec:runs}
 
 - What is a run (from an operation)
 
@@ -411,30 +643,48 @@ You can use footnotes\footnote{Footnotes should be complete
 \subsection{Tables}
 
 \begin{table}[t]
-\caption{Classification accuracies for naive Bayes and flexible
-Bayes on various data sets.}
-\label{sample-table}
-\begin{center}
-\begin{small}
-\begin{sc}
-\begin{tabular}{lcccr}
-\toprule
-Data set & Naive & Flexible & Better? \\
-\midrule
-Breast    & 95.9$\pm$ 0.2& 96.7$\pm$ 0.2& $\surd$ \\
-Cleveland & 83.3$\pm$ 0.6& 80.0$\pm$ 0.6& $\times$\\
-Glass2    & 61.9$\pm$ 1.4& 83.8$\pm$ 0.7& $\surd$ \\
-Credit    & 74.8$\pm$ 0.5& 78.3$\pm$ 0.6&         \\
-Horse     & 73.3$\pm$ 0.9& 69.7$\pm$ 1.0& $\times$\\
-Meta      & 67.1$\pm$ 0.6& 76.5$\pm$ 0.5& $\surd$ \\
-Pima      & 75.1$\pm$ 0.6& 73.9$\pm$ 0.5&         \\
-Vehicle   & 44.9$\pm$ 0.6& 61.5$\pm$ 0.4& $\surd$ \\
-\bottomrule
-\end{tabular}
-\end{sc}
-\end{small}
-\end{center}
-\vskip -0.1in
+  \caption{Classification accuracies for naive Bayes and flexible
+    Bayes on various data sets.}
+  \label{sample-table}
+  \begin{center}
+    \begin{small}
+      \begin{sc}
+        \begin{tabular}{lcccr}
+          \toprule
+          Data set & Naive & Flexible & Better? \\
+          \midrule
+          Breast    & 95.9$\pm$ 0.2& 96.7$\pm$ 0.2& $\surd$ \\
+          Cleveland & 83.3$\pm$ 0.6& 80.0$\pm$ 0.6& $\times$\\
+          Glass2    & 61.9$\pm$ 1.4& 83.8$\pm$ 0.7& $\surd$ \\
+          Credit    & 74.8$\pm$ 0.5& 78.3$\pm$ 0.6&         \\
+          Horse     & 73.3$\pm$ 0.9& 69.7$\pm$ 1.0& $\times$\\
+          Meta      & 67.1$\pm$ 0.6& 76.5$\pm$ 0.5& $\surd$ \\
+          Pima      & 75.1$\pm$ 0.6& 73.9$\pm$ 0.5&         \\
+          Vehicle   & 44.9$\pm$ 0.6& 61.5$\pm$ 0.4& $\surd$ \\
+          \bottomrule
+        \end{tabular}
+      \end{sc}
+    \end{small}
+  \end{center}
+  \vskip -0.1in
+\end{table}
+
+Table \ref{software-vs-models} compares traditional software with
+reusable models.
+
+\begin{table}[h!]
+  \begin{center}
+    \caption{Traditional software vs reusable models.}
+    \label{software-vs-models}
+    \begin{small}
+      \begin{tabular}{l|l}
+        \toprule
+        \textbf{Traditional software} & Installed code \\ \hline
+        \textbf{Reusable models} & Installed code + trainable on novel data \\
+        \bottomrule
+      \end{tabular}
+    \end{small}
+  \end{center}
 \end{table}
 
 \subsection{Citations}
