@@ -49,9 +49,9 @@
   management strategies are central to successful software
   ecosystems. Examples include \href{https://www.npmjs.com/}{npm} for
   JavaScript, \href{https://wiki.debian.org/Apt}{APT} for Debian, and
-  \href{https://pip.pypa.io}{pip} for Python. While such tools excel
-  at creating traditional software packages, machine learning
-  applications present unique requirements that call for
+  \href{https://pip.pypa.io}{pip} for Python. Such tools excel at
+  creating traditional software packages. However, machine learning
+  applications present unique requirements that call for tool
   specialization. Guild AI combines the proven effectiveness of
   package managers with novel features to enable machine learning
   model reuse for application development across a variety of use
@@ -73,16 +73,116 @@
 
 \section{Introduction}
 
+Code reuse is a central tenet in software development and is supported
+by myriad techniques, abstractions, and tools. Effective code reuse
+allows developers to leverage prior work in a consistent, reliable
+manner that saves time and improves software quality. In this paper we
+consider code reuse in terms of \emph{packaged software} in the
+context of machine learning.
+
+\subsection{Traditional packaged software}
+
+Packaged software is software that is organized in a way that can be
+easily installed and used by \emph{users}. A user is a consumer of
+software, rather than a producer or developer. A user may be software
+developer, in the case of consuming software libraries or frameworks,
+or she may be an end-user who uses software as a program using a
+graphical or command line interface. In both cases, packaged software
+may be provided in units that the user can install and start using
+quickly and reliably.
+
+This is an example of installing packaged software:
+
+{\footnotesize
+\begin{verbatim}
+ $ pip install tensorflow
+\end{verbatim}}
+
+By running this command, a user is using a \emph{package manager}---in
+this case the program \verb|pip|---to install a package named
+\verb|tensorflow|. With this innocuous command, the user implicitly expects
+a number of things:
+
+\begin{itemize}
+\item The Python module \verb|tensorflow| should be installed
+\item Additional Python modules required by \verb|tensorflow| should
+  also be installed
+\item Installed software should work as expected on the target system
+\item At a future date \verb|tensorflow| may be similarly uninstalled along
+  with its no-longer-needed required packages
+\item The act of installing and uninstalling \verb|tensorflow| should
+  not break or otherwise destabilize other installed software on the
+  target system
+\end{itemize}
+
+Such a package management facilities are essential to code reuse at
+the system level. Package managers allow users to consume and manage
+complex software systems with simple commands in a way that maintains
+the integrity of other installed software. They support rapid
+experimentation with new software as users are free to install, use,
+and evaluate packages with the confidence that they can safely remove
+that software later.
+
+Package managers promote healthy software ecosystems by facilitating
+software \emph{publishing}. Software authors use packaging tools to
+create the installable software units---\emph{packages}---that are so
+easily consumed by users. By publishing packaged software, developers
+signify that their software will work as advertised if installed using
+the supported tools.
+
+Immense software ecosystems that are enabled by package managers
+include Python, JavaScript, Ruby, Go, and R. The GNU/Linux operating
+system itself is an ecosystem of package management ecosystems
+including packaging schemes from Debian, RedHat, Gentoo, and Arch
+distributions. Package managers are established cornerstones of
+software reuse across languages and operating systems.
+
+\subsection{Code reuse and machine learning models}
+
+A \emph{machine learning model} is challenging to define as models
+have different contexts. In the most general context, models are
+mathematical concepts or language that represents a system
+(needref). In the context of machine learning, models may be
+represented by computer source code, either explicitly as declared
+structures, or implicitly by way of executable instructions that
+perform model related tasks. A \emph{trained model} is a model that
+has learned some representation of a system through the process of
+computer based optimization.
+
+For the purpose of our discussion, a machine learning model is a
+software representation of a specific mathetical concept that can be
+trained by a computer. Models may be in various states:
+\emph{uninitialized}, \emph{initialized}, \emph{partially trained},
+\emph{fully trained}. Regardless of state, the distinguishing feature
+of machine learning models for our purpose is that they support
+runnable computer operations.
+
+Models---and in particular \emph{trained models}--- are similar to
+traditional software in that they can be executed to perform
+computations. In fact, the purpose of training a model is to create a
+computer program. The difference between a trained model and a human
+authored program is one of method: a trained model is learned by an
+algorithm while a human authored program is written manually.
+
+
 TODO:
 
 - What problem is being solved?
 
+Need to define reuse. Start with traditional softwar reuse and make it
+clear that Guild addresses model reuse. What is model reuse?
+
 - How package managers facilitate code reuse
+
+Apply analogy of system packaging and the importance of formalizing
+the process with protocols and reference implementations.
 
 \subsection{Related Work}
 
 - How machine learning models are distributed today (pip, GitHub
 projects)
+
+- Packaging tools
 
 - Frameworks and libraries
 
@@ -158,7 +258,7 @@ projects)
 
 - What is a run concretely (i.e. directory, etc.)
 
-\subsection{Starging a Run}
+\subsection{Starting a Run}
 
 \subsection{Listing Runs}
 
@@ -204,9 +304,11 @@ projects)
 
 \subsection{Configuration Processing}
 
-\subsection{Requires Resource Resolution}
+\subsection{Resource Resolution}
 
-\subsection{Packaging}
+\subsection{Model Testing}
+
+\subsection{Packaging and Distribution}
 
 \subsection{Run Indexing}
 
@@ -220,9 +322,17 @@ projects)
 
 \subsection{History and Lessons Learned}
 
+- Workshops
+- User feedback
+
 \subsection{Packages}
 
+- slim, object-detection, mnist, hello
+
 \subsection{Early Use}
+
+\section{Summary}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
