@@ -34,6 +34,8 @@
 \setlist[itemize]{
   itemsep=4pt,
   topsep=4pt,
+  labelindent=1em,
+  leftmargin=1em,
 }
 
 % Use the following line for the initial blind version submitted for review:
@@ -134,15 +136,15 @@ this case the program \verb|pip|---to install a package named
 a number of things:
 
 \begin{itemize}
-\item The Python module \verb|tensorflow| should be installed
+\item The Python module \verb|tensorflow| should be installed.
 \item Additional Python modules required by \verb|tensorflow| should
-  also be installed
-\item Installed software should work as expected on the target system
-\item At a future date \verb|tensorflow| may be similarly uninstalled along
-  with its no-longer-needed required packages
+  also be installed.
+\item Installed software should work as expected on the target system.
+\item At a future date \verb|tensorflow| may be similarly uninstalled
+  along with its no-longer-needed required packages.
 \item The act of installing and uninstalling \verb|tensorflow| should
   not break or otherwise destabilize other installed software on the
-  target system
+  target system.
 \end{itemize}
 
 Such a package management facilities are essential to code reuse at
@@ -295,6 +297,7 @@ located in the root directory of a Guild AI enabled project.
 
 Listing~\ref{lst:guild-file} illustrates a simple Guild file.
 
+\begin{figure}
 \begin{lstlisting}[
     caption=Simple Guild file example,
     label={lst:guild-file}]
@@ -311,6 +314,7 @@ operations:
   evaluate:
     main: eval_mnist
 \end{lstlisting}
+\end{figure}
 
 \subsection{Packages}
 
@@ -393,6 +397,7 @@ Listing~\ref{lst:resource} illustrates a resource definition for a
 model. The resource \verb|idx-data| defines four source files that
 will be made available to any operation that requires that resource.
 
+\begin{figure}
 \begin{lstlisting}[
     caption=Model resource example,
     label={lst:resource}]
@@ -408,6 +413,7 @@ resources:
       - t10k-images-idx3-ubyte.gz
       - t10k-labels-idx1-ubyte.gz
 \end{lstlisting}
+\end{figure}
 
 \subsection{Runs}
 
@@ -502,6 +508,7 @@ Guild AI can be used to both document and automate these
 steps. Listing~\ref{lst:published-model} illustrates a Guild file that
 might be used to codify the steps as model operations.
 
+\begin{figure}
 \begin{lstlisting}[
     caption=Sample project Guild file,
     label={lst:published-model}]
@@ -535,6 +542,7 @@ resources:
     sources:
       - operation: train
 \end{lstlisting}
+\end{figure}
 
 The operations can be run using the Guild AI command line interface as
 follows:
@@ -711,6 +719,7 @@ the project Guild file and then run the \verb|guild package| command.
 
 Listing~\ref{lst:package} contains a sample \verb|package| definition.
 
+\begin{figure}
 \begin{lstlisting}[
     caption=Sample package definition,
     label={lst:package}]
@@ -723,6 +732,7 @@ author-email: john@my.co
 license: Apache 2.0
 requires: [keras, Pillow, matlab]
 \end{lstlisting}
+\end{figure}
 
 Given a Guild file with a package definition, develolpers can use
 Guild AI to generate a Python wheel distribution, which in turn can be
@@ -800,29 +810,29 @@ Figure~\ref{fig:op-help} contains sample help for the \verb|train|
 operation of the \verb|gpkg.mnist/cnn| package model.
 
 \begin{figure}
-  \begin{lstlisting}
-  Usage: guild run [OPTIONS] cnn:train
-  [FLAG]...
+\begin{lstlisting}
+Usage: guild run [OPTIONS] cnn:train
+[FLAG]...
 
-  Train the CNN
+Train the CNN
 
-  Use 'guild run --help' for a list of
-  options.
+Use 'guild run --help' for a list of
+options.
 
-  Dependencies:
-    mnist-dataset  Yann Lecun's MNIST
-                   dataset in compressed
-                   IDX format
+Dependencies:
+  mnist-dataset  Yann Lecun's MNIST
+                 dataset in compressed
+                 IDX format
 
-  Flags:
-    batch-size  Number of images to
-                include in a training
-                batch (100)
-    epochs      Number of epochs to train
-                (10)
-  \end{lstlisting}
-  \caption{Sample operation help}
-  \label{fig:op-help}
+Flags:
+  batch-size  Number of images to
+              include in a training
+              batch (100)
+  epochs      Number of epochs to train
+              (10)
+\end{lstlisting}
+\caption{Sample operation help}
+\label{fig:op-help}
 \end{figure}
 
 It is important to note that model and operation help is automatically
@@ -1005,6 +1015,7 @@ In many cases, this is simply a matter of selecting a model name and
 creating a \verb|train| operation. Listing~\ref{lst:pet-stub}
 illustrates a straightforward pet classifier.
 
+\begin{figure}
 \begin{lstlisting}[
     caption=Sample Guild file for a pet classifier,
     label={lst:pet-stub}]
@@ -1026,6 +1037,7 @@ operations:
           Number of epochs to train
         default: 100
 \end{lstlisting}
+\end{figure}
 
 With even a simple stub, a developer can formalize the model and what
 it does. This stage clarifies the model's user interface before the
@@ -1135,6 +1147,7 @@ inheriting the properties of shared config. The shared config
 \verb|model-base| defines the common model operations and uses
 \emph{parameters} to define a model name and default learning rate.
 
+\begin{figure}
 \begin{lstlisting}[
     caption=Configuration inheritance,
     label={lst:inheritance}]
@@ -1158,6 +1171,7 @@ inheriting the properties of shared config. The shared config
     model-name: cnn
     default-lr: 0.0001
 \end{lstlisting}
+\end{figure}
 
 Configuation inheritance can be applied across Guild files---e.g. to
 configuration defined in packages or other projects. This is useful
@@ -1166,12 +1180,14 @@ developers. Listing~\ref{lst:extend-slim} demonstrates how a model can
 inherit all of the operations of another model with a single line of
 configuration.
 
+\begin{figure}
 \begin{lstlisting}[
     caption=Extending PNASNet Mobile,
     label={lst:extend-slim}]
 - model: my-classifier
   extends: gpkg.slim.models/pnasnet-mobile
 \end{lstlisting}
+\end{figure}
 
 Configuration inheritance has proven effective at managing complex
 model configuration. This is evident in the \verb|gpkg.slim| and
@@ -1184,6 +1200,7 @@ Configuration may also be reused by including shared configuration
 files using \verb|include| objects. Listing~\ref{lst:shared} and
 Listing~\ref{lst:include-shared} illustrate how includes can be used.
 
+\begin{figure}
 \begin{lstlisting}[
     caption=Shared configuration (e.g. defined in shared.yml),
     label={lst:shared}]
@@ -1191,7 +1208,9 @@ Listing~\ref{lst:include-shared} illustrate how includes can be used.
   operations:
     train: train
 \end{lstlisting}
+\end{figure}
 
+\begin{figure}
 \begin{lstlisting}[
     caption=Use of includes (e.g. defined in guild.yml),
     label={lst:include-shared}]
@@ -1203,6 +1222,7 @@ Listing~\ref{lst:include-shared} illustrate how includes can be used.
 - model: model-b
   extends: model-base
 \end{lstlisting}
+\end{figure}
 
 Includes may also be used to merge shared configuration into other
 configuration. Listing~\ref{lst:include-flags} illustrates how shared
@@ -1213,6 +1233,7 @@ value. The value for \verb|$include| can be a list to merge from
 multiple sources. In the example, the value for \verb|learning-rate|
 is redefined in the operation.
 
+\begin{figure}
 \begin{lstlisting}[
     caption=Including shared flag configuration,
     label={lst:include-flags}]
@@ -1230,6 +1251,7 @@ is redefined in the operation.
         $include: default-train-flags
         learning-rate: 0.001
 \end{lstlisting}
+\end{figure}
 
 \subsubsection{Reusing Python Main Modules}
 
@@ -1243,6 +1265,7 @@ Listing~\ref{lst:tflite_convert} illustates the use of the TensorFlow
 module \verb|tflite_convert| to generte a TF Lite file for an
 operation.
 
+\begin{figure}
 \begin{lstlisting}[
     caption=Reusing a Python main module,
     label={lst:tflite_convert}]
@@ -1251,6 +1274,7 @@ operations:
   tflite:
     main: tensorflow/contrib/lite/python/tflite_convert
 \end{lstlisting}
+\end{figure}
 
 Developers may create packages of reusable modules that can be easily
 used to implement model operations. For example, consider an
@@ -1266,6 +1290,7 @@ example, the model is defined in a package that requires the
 \verb|server-utils| package, which will be automatically installed by
 the command \verb|guild install classifiers|.
 
+\begin{figure}
 \begin{lstlisting}[
     caption=Quickly enabling model deploy,
     label={lst:deploy}]
@@ -1282,6 +1307,7 @@ the command \verb|guild install classifiers|.
       sources:
         - operation: train
 \end{lstlisting}
+\end{figure}
 
 \subsection{Testing}
 
@@ -1296,6 +1322,7 @@ help---ensuring that what the user sees when she runs
 \verb|guild help| is what the developer intendes---and another that
 exercises model operations and checks results.
 
+\begin{figure}
 \begin{lstlisting}[
     caption=Model tests,
     label={lst:tests}]
@@ -1314,6 +1341,7 @@ exercises model operations and checks results.
       expected:
         - scalar: accuracy > 0.7
 \end{lstlisting}
+\end{figure}
 
 The model test runs three operations: prepare-samples, train, and
 evaluate. The train step asserts that a checkpoint file exist, which
@@ -1348,12 +1376,7 @@ listed below.
 \subsection{Command Line Interface}
 
 Guild AI is primarily a command line tool. Users type Guild AI
-commands in the form:
-
-{\footnotesize
-\begin{verbatim}
-guild COMMAND [ARG]...
-\end{verbatim}}
+commands in the form: \verb|guild COMMAND [ARG]...|
 
 Guild AI makes use of the Click Python library (ref) to implement its
 core command line processing support.
@@ -1411,18 +1434,18 @@ license. It has been under active development for the last two years
 and undergone significant revision and updates during that time based
 on user feedback and real world application development.
 
-\subsection{History and Lessons Learned}
+There have been several packaging initiatives that have produced
+reusable models (ref) that fulfill the goals outlined in this
+paper. Specifically, the packages support:
 
-- Workshops
-- User feedback
-
-\subsection{Packages}
-
-- slim, object-detection, mnist, hello
-
-\subsection{Early Use}
-
-\section{Summary}
+\begin{itemize}
+\item Use without code changes
+\item Reuse by developers who want to new models that leverage
+  packaged functionality
+\item Package maintainer workflow as described in
+  Section~\ref{sec:package-maintainer}
+\item Regression testing as a part of a continuous integration process
+\end{itemize}
 
 \bibliography{paper}
 \bibliographystyle{sysml2019}
