@@ -463,7 +463,7 @@ may be referenced:
 \item[developer] person developing a model, either from scratch or
   adapting the work of others
 \item[packager] person neither using nor developing a model but who
-  packages models created by developers for use by users
+  packages models created by developers for users
 \end{description}
 
 \subsection{Publish a Model for Use}
@@ -474,70 +474,33 @@ documenting the steps needed to install, adapt, and use it. She may be
 motivated to simplify the user experience so that her work is more
 easily and successfully applied. The benefit to her may be quality
 feedback from expert users, improved reputation, a sense of
-contribution, or her colleagues may simply expect that work be
+contribution, or her colleagues may simply expect that her work be
 documented and easy to use.
 
-While documenting the steps needed to use a model is undoubtedly
-helpful, the process is still burdensome for both the developer and
-her users. Guild AI can be used to simultaneously document model use
-but also directly support its use through model operations.
+While documenting a model is undoubtedly helpful, the process can be
+burdensome for the developer. Similarly, following documented steps
+can be burdensome for users. Guild AI can be used to simultaneously
+document model features and support model usage through operations.
 
-Consider these instructions for model use, which might be documented
-for a project:
+Consider these instructions for model use:
 
 \setlength{\parindent}{1em}
 \begin{enumerate}
 \item Install required packages
-\item Download the raw data
-\item Prepare the raw data for training
+\item Download the data
+\item Prepare the data for training
 \item Train the model
 \item Export the trained model for deployment
 \end{enumerate}
 \setlength{\parindent}{0em}
 
 While these steps provide invaluable information, they still rely on
-the user to carefully execute them and troubleshoot issues as they
-arise. The process takes time and is subject to error at any step.
+the user to carefully execute them and troubleshoot issues. The
+process takes time and is subject to error at any step.
 
 Guild AI can be used to both document and automate these
 steps. Listing~\ref{lst:published-model} illustrates a Guild file that
 might be used to codify the steps as model operations.
-
-\begin{figure}
-\begin{lstlisting}[
-    caption=Sample project Guild file,
-    label={lst:published-model}]
-model: sample
-operations:
-  prepare-data:
-    description:
-      Prepare data for training
-    main: prepare_data
-    requires: raw-data
-  train:
-    description: Train model
-    main: train
-    requires: prepared-data
-  export-model:
-    description:
-      Export model for deployment
-    main: export_model
-    requires: trained-model
-resources:
-  raw-data:
-    description: Raw data for training
-    sources:
-      - url: http://mydata.com/raw.tgz
-  prepare-data:
-    description: Prepared data
-    sources:
-      - operation: prepare-data
-  trained-model:
-    description: Trained model
-    sources:
-      - operation: train
-\end{lstlisting}
-\end{figure}
 
 The operations can be run using the Guild AI command line interface as
 follows:
@@ -549,7 +512,7 @@ follows:
  $ guild run export-model
 \end{verbatim}}
 
-Furthermore, Guild AI provides model help, detailing available
+Guild AI additionally provides model help, detailing available
 operations, supported flags, and operation dependencies.
 
 A user can get help for the model by running:
@@ -563,33 +526,69 @@ Documentation is automatically generated from the model description,
 making Guild AI models self documenting.
 
 The developer can chose to distribute her model as a
-project---e.g. making it available as a GitHub repository. She may
-alternatively package the model and deploy as an installable Python
-wheel distribution artifact.
+project---e.g. making it available as a GitHub repository---or she may
+package the model and deploy it as an installable Python wheel
+distribution.
+
+\begin{figure}
+\begin{lstlisting}[
+    caption=Sample project Guild file,
+    label={lst:published-model}]
+model: sample
+operations:
+  prepare-data:
+    description:
+      Prepare data for training
+    main: prepare
+    requires: data
+  train:
+    description: Train the model
+    main: train
+    requires: prepared-data
+  export-model:
+    description:
+      Export the model for deployment
+    main: export_model
+    requires: trained-model
+resources:
+  data:
+    description: Data for training
+    sources:
+      - url: http://my.co/data.tgz
+  prepare-data:
+    description: Prepared data
+    sources:
+      - operation: prepare-data
+  trained-model:
+    description: Trained model
+    sources:
+      - operation: train
+\end{lstlisting}
+\end{figure}
 
 \subsection{Use a Published Model}
 \label{sec:use-model}
 
-The flip side of the use case outline in
-Section~\ref{sec:publish-model} is that of the \emph{user}. A user is
-interesting in taking the work of a model developer and applying it,
-either by adapting her model to a new application or by integrating
-it as into another project.
+The flip side of the use case outlined in
+Section~\ref{sec:publish-model} is from the \emph{user} point of
+view. A user is interested in taking the work of a model developer and
+applying it, either by adapting the model to a new application or by
+integrating it as-is into a project.
 
-Users commonly rely on thorough documentation to effectively use
-models. If a project is under documented or otherwise hard to work
-with, it may not be used. This is a lost opportunity for both user and
-developer that hinders adoption and model improvement.
+Users commonly rely on documentation to effectively use models. If a
+project is poorly documented or otherwise hard to work with, the user
+may choose not to use it. This would be a lost opportunity for both
+user and developer and would hinder model adoption and improvement.
 
-As described in Section~\ref{sec:publish-model}, a published model is
-simple to use. From the standpoint of the user, the model can be used
-either by cloning the project repository---e.g. as in the case of
-GitHub published models---or install the model as a Python
-package. Assuming the project was published as a package named
-\verb|sample-project|, the user might run these commands to use the
-model:
+As described in Section~\ref{sec:publish-model}, a published model can
+be used by running its operations. From the standpoint of the user,
+the model can be consumed either by cloning the project
+repository---e.g. as in the case of GitHub published models---or by
+installing the model as a Python package. If, for example, the project
+was published as the package \verb|sample-project|, a could user run
+the commands below to quickly make use of its features.
 
-\setlength{\parindent}{1em}
+\setlength{\parindent}{0.67em}
 
 {\footnotesize\emph{Install the package}}
 
@@ -616,20 +615,20 @@ model:
 
 \setlength{\parindent}{0em}
 
-This illustrates the usefulness of packaging models for
+This example highlights the usefulness of packaging models for
 reuse. Packaged models in this case consist of more than the
-underlying model code---they include additional information that makes
-them trivial to use relative to traditional forms of model reuse.
+underlying model code---they include essential configuration that lets
+Guild AI \emph{execute model operations}.
 
 \subsection{Package Third Party Models}
 \label{sec:package-maintainer}
 
 Complex software ecosystems such as GNU/Linux have formalized the role
-of a software \emph{packager} (or \emph{package maintainer}). The goal
+of a software \emph{packager}---or \emph{package maintainer}. The goal
 of a packager is to improve the value of a software distribution by
-creating high quality software packages that users find
-useful. Packers are often independent of the upstream software
-projects they package, serving as intermediaries between the software
+creating high quality, useful packages that are easy to install and
+use. Packagers are often independent of the upstream software projects
+they package, serving as intermediaries between the software
 developers and distribution users.
 
 Guild AI supports this pattern by allowing packagers to incorporate
@@ -637,19 +636,19 @@ upstream model sources into Guild packages, patching them as needed to
 provide the desired functionality to users.
 
 Consider a case where a model developer is overloaded with research
-tasks and doesn't have time to provide documentation for using her
-models or publishing them for use as described in
-Section~\ref{sec:publish-model}. An independent \emph{packager} may
-step up to create a package instead.
+tasks and doesn't have time to create model documentation, much less
+publish models as described in Section~\ref{sec:publish-model}. An
+independent \emph{packager} may step up to create a package instead.
 
 A packager must assume that upstream sources are available \emph{as
-  is} and he cannot expect developers to fix bugs or add new features
-(though he may certainly ask and hope). Packagers therefore must be
-prepared to \emph{patch} model code as needed to get it to work as
-expected.
+  is} and cannot expect developers to fix bugs or add new
+features---though he may certainly submit requests and remain
+hopeful. Packagers therefore must be prepared to \emph{patch} model
+code as needed to get it to work as expected.
 
 Guild AI provides various means of patching model source to support
-packagers in this role.
+packagers in this role. Section~\ref{sec:patching} describes patching
+methods.
 
 \subsection{Team Collaboration}
 
@@ -657,7 +656,7 @@ The roles of \emph{developer}, \emph{user}, and \emph{packager} often
 exist within a single organization or team. Guild AI supports team
 collaboration by supporting each role as a separate concern.
 
-Within a typical organization structure, the roles map as follows:
+Within a typical organization structure, the may roles map as follows:
 
 \setlength{\parindent}{1em}
 developer $\rightarrow$ \emph{research scientist}
@@ -667,12 +666,11 @@ user $\rightarrow$ \emph{software engineer}
 packager $\rightarrow$ \emph{research engineer}
 \setlength{\parindent}{0em}
 
-Of course this is a rough mapping and not all organizations share this
+Of course this is a rough mapping and not all organizations use this
 structure. Whatever the job titles and division of labor, Guild AI
 supports the three facets of collaboration: model development, model
-use, and intermediation between those two points in the interest of
-freeing up developer time and resources to focus on pure model
-development.
+use, and intermediation between developer and user as needed to
+improve usability without unduly burdening developers.
 
 \subsection{Streamline Model Developer Workflow}
 \label{sec:streamline-workflow}
@@ -688,17 +686,16 @@ well defined, self documenting interfaces.
 
 \subsection{Manage Run Artifacts}
 
-The final use case discussed involves managing tracking run artifacts.
-During both model development and use, it's useful to formally manage
-the artifacts both generated and consumed by model operation. This is
-similar to source code revision control, where developers can move
-backward and forward in time to view their work. In the case of Guild
-AI, the revisions are the results of data preparation, training
-experiments, model optimizations---anything that might be generated by
-an operation.
+The final use case discussed involves managing runs and tracking run
+artifacts. During both model development and use, it's helpful to
+formally manage run artifacts both generated and consumed by model
+operation. This is similar to source code revision control, where
+developers can move backward and forward in time to view their
+work. In the case of Guild AI, the revisions are the results of data
+preparation, training experiments, model optimizations---anything that
+might be generated by an operation.
 
-Section~\ref{sec:runs} provides more details about Guild AI run
-management.
+Section~\ref{sec:runs} describes Guild AI run management.
 
 \section{Using Models}
 
@@ -707,7 +704,7 @@ models. This section provides more details on model usage in Guild AI.
 
 \subsection{Packaged Models}
 
-Packaged models are models that have been bundles with supporting code
+Packaged models are models that have been bundled with supporting code
 and metadata into a Python wheel distribution. To generate a package,
 a developer or packager must include a \verb|package| definition in
 the project Guild file and then run the \verb|guild package| command.
@@ -729,11 +726,10 @@ requires: [keras, Pillow, matlab]
 \end{lstlisting}
 \end{figure}
 
-Given a Guild file with a package definition, developers can use
-Guild AI to generate a Python wheel distribution, which in turn can be
-used by users to install package models. Developers can also upload
-packages to PyPI to make the package available for search and
-installation.
+Given a Guild file with a package definition, developers can generate
+a Python wheel distribution, which in turn can be used to install
+package models. Developers can additionally upload packages to PyPI,
+making them available to discover and install.
 
 Guild AI models are installed like any other Python package. Users may
 use Guild AI to install the package:
@@ -743,7 +739,7 @@ use Guild AI to install the package:
  $ guild install sample-project
 \end{verbatim}}
 
-Alternatively, a user may use pip:
+Or alternatively use pip:
 
 {\footnotesize
 \begin{verbatim}
@@ -754,11 +750,10 @@ Guild AI package requirements may be included in requirements files
 (e.g. \verb|requirements.txt|) or as dependencies of other Python
 package distributions.
 
-Package models are convenient for using models and their related
-functionality when a user doesn't need to modify the model source
-code. To use models and also have the option of modifying their source
-code, a user should use project models (Section
-\ref{sec:project-models}).
+Package models are convenient for using models when a user doesn't
+need to modify the model source code. To use models and also have the
+option of modifying model source code, a user should use project
+models (Section \ref{sec:project-models}).
 
 \subsection{Project Models}
 \label{sec:project-models}
@@ -766,11 +761,8 @@ code, a user should use project models (Section
 Project models are defined in a project Guild file---i.e. a file named
 \verb|guild.yml| that resides in the top level of a project
 directory. Users may run operations on project models by running them
-from within the project directory or by referring the project directory
-in the operation specified for the \verb|run| command.
-
-Project models are used by users or developers who expect to modify
-project files.
+from within the project directory or by referring the project
+directory in the operation specified for the \verb|guild run| command.
 
 Unlike packaged models, project models do not need to be installed
 using a command---they are available from the project itself. A user
@@ -787,12 +779,12 @@ Each model has one or more operations, which can be listed using the
 
 The ability to discover available models and operations is a key
 feature enabling model use in Guild AI. Without formally defining
-these, users are left to their own to infer model capabilities from
-available documentation and source code.
+these, users must infer model capabilities from documentation and
+source code.
 
 \subsection{Getting Help for Models}
 
-A user may use the \verb|guild help| command to get details about a
+A user may run the \verb|guild help| command to show details about a
 model, its operations, operation flags, and resource
 dependencies. This is similar to the \emph{man} facility (ref) on many
 systems.
@@ -833,16 +825,16 @@ Flags:
 It is important to note that model and operation help is automatically
 generated from model descriptions. This facility lowers the cost of
 model documentation for developers and gives users a consistent
-interface for discovering model capabilities and instructions for using
-them.
+interface for discovering model capabilities and the commands for
+using them.
 
 \subsection{Running Operations}
 
 Once a model is available---either as an installed package model or
 defined in a project---it can be used by running \emph{operations}. An
 operation is an action that can be performed on a model. Operations
-both \emph{define and implement} model capabilities. The act of using
-a model is the process of running operation.
+both \emph{define and implement} model capabilities. The process of
+using a model is the process of running operation.
 
 Operations may define an entire application development life cycle for
 one model or a host of models that work together.
@@ -851,11 +843,11 @@ Section~\ref{sec:operations} lists common operation names.
 
 The act of running an operation starts a \emph{run}, which is both an
 operating process and a Guild AI managed file system artifact that
-contains run details including generated output.
+contains run details and generated output.
 
 A user can run an operation using the \verb|guild run| command.
 
-Refer to Section~\ref{sec:runs} for information about managing runs.
+Section~\ref{sec:runs} describes how runs are managed.
 
 \subsection{Viewing and Comparing Runs}
 
@@ -865,14 +857,12 @@ line interface for managing runs, which is outlined in
 Section~\ref{sec:runs}.
 
 Guild AI also provides various methods for visualizing runs. Guild
-View is an application that is provided with Guild AI that launches a
-web application that can be used to view run details, including run
-files.
-
-Guild AI also integrates TensorBoard (ref) as a visualization tool,
-which can be used to view TensorFlow event logs that are generated by
-model operations.\footnote{Operations must explicitly write TensorFlow
-  event logs during a run to support TensorBoard visualization.}
+View is an application provided with Guild AI that displays run
+details including run files. Guild AI integrates TensorBoard (ref) as
+a visualization tool for viewing TensorFlow event logs generated by
+model operations.\footnote{Not all operations generate TensorFlow
+  event logs---these must be explicitly written during a run by the
+  operation.}
 
 \subsection{Accessing Generated Artifacts}
 
@@ -883,21 +873,20 @@ directory as written during the operation.
 
 Artifacts are routinely used as inputs to subsequent operations. For
 example, a TensorFlow checkpoint generated by a \verb|train| operation
-may be used as input to an \verb|export-and-freeze| operation, which
-in turn generates a frozen inference graph. This process is automatic
-and part of Guild AI's resource resolution process.
+may be used as input to an \verb|export-and-freeze| operation. The
+process of resolving required operation sources is automatic and part
+of Guild AI's run support.
 
 Artifacts may also be accessed directly by users given their file
 system paths. A user can list the full paths for all files associated
 with a run using the \verb|guild runs info| command with the
-\verb|-ff| option. With these path, the user may copy the files or
+\verb|-ff| option. Using their paths, a user can copy desired files or
 link to them as needed.
 
 Runs may also be \emph{exported} to a location using the
-\verb|guild export| command. Exported runs are copied (or moved, if
-the \verb|--move| option is specified) to a specified file system
-directory. This can be used to create backups or to transfer runs to
-another location.
+\verb|guild export| command. Exported runs are copied---or moved, if
+specified---to a specified file system directory. This can be used to
+create backups or to transfer runs to another location.
 
 \subsection{Isolating Runs Using Environments}
 
@@ -1105,6 +1094,7 @@ developer can specify an alternative argument name for a flag using
 the \verb|arg-name| attribute.
 
 \subsection{Patching}
+\label{sec:patching}
 
 In cases where a developer cannot modify upstream sources or chooses
 not to (e.g. to simplify ongoing maintenance) he may choose to patch
