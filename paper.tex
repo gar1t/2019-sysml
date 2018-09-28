@@ -17,6 +17,25 @@
   framextopmargin=5pt,
 }
 
+\usepackage{enumitem}
+
+\setlist[description]{
+  itemsep=4pt,
+  labelindent=1em,
+  leftmargin=1em,
+  topsep=4pt,
+}
+
+\setlist[enumerate]{
+  itemsep=4pt,
+  topsep=4pt,
+}
+
+\setlist[itemize]{
+  itemsep=4pt,
+  topsep=4pt,
+}
+
 % Use the following line for the initial blind version submitted for review:
 \usepackage{sysml2019}
 
@@ -152,16 +171,15 @@ software reuse across languages and operating systems.
 
 A \emph{machine learning model} is challenging to define as models
 have different contexts. In the most general context, models are
-mathematical concepts or language that represents a system
-(needref). In the context of machine learning, models may be
-represented by computer source code, either explicitly as declared
-structures, or implicitly by way of executable instructions that
-perform model related tasks. A \emph{trained model} is a model that
-has learned some representation of a system through the process of
-computer based optimization.
+mathematical concepts or language that represents a system (ref). In
+the context of machine learning, models may be represented by computer
+source code, either explicitly as declared structures, or implicitly
+by way of executable instructions that perform model related tasks. A
+\emph{trained model} is a model that has learned some representation
+of a system through the process of computer based optimization.
 
 For the purpose of our discussion, a machine learning model is a
-software representation of a specific mathetical concept that can be
+software representation of a specific mathematical concept that can be
 trained by a computer. Models may be in various states:
 \emph{uninitialized}, \emph{initialized}, \emph{partially trained},
 \emph{fully trained}. Regardless of state, the distinguishing feature
@@ -192,7 +210,7 @@ A common approach to sharing and reusing machine learning models is a
 \emph{model zoo}---an online repository of reusable models that
 includes source code, examples, documentation, and in some cases
 pretrained models. The \href{Caffe Model Zoo}{Caffe Model Zoo} was one
-of the first model zoos and has inspired serveral others (ref).
+of the first model zoos and has inspired several others (ref).
 
 Model zoos encourage code reuse by consolidating related models
 (e.g. based on underlying library implementation or application
@@ -214,7 +232,7 @@ and using model source code and associated pretrained models. They
 emphasize the use of \emph{transfer learning} where applicable for
 training models on novel datasets.
 
-\subsubsection{Software packages and source coderepositories}
+\subsubsection{Software packages and source code repositories}
 
 Models are commonly reused through traditional software distribution
 channels: packages and source code repositories. In both cases, model
@@ -243,12 +261,12 @@ facilities can be applied to any machine learning model
 implementation.
 
 Guild AI also supports the well established practice of package
-maintenence, where a third party can create usable packages without
+maintenance, where a third party can create usable packages without
 necessarily coordinating with model developers. This is discussed in
 detail in Section \ref{sec:package-maintainer}.
 
 As with traditional software packages and source code repositories,
-Guild AI supports a federated approach to software distriution. Users
+Guild AI supports a federated approach to software distribution. Users
 are free to use Guild AI to create and distribute reusable models in a
 variety of ways. Refer to Section \ref{sec:use-cases} for coverage of
 various use case.
@@ -288,7 +306,7 @@ operations:
   train:
     main: train_mnist
     flags:
-      batchs-size: 32
+      batch-size: 32
       train-steps: 1000
   evaluate:
     main: eval_mnist
@@ -325,18 +343,42 @@ Guild AI does not prescribe any particular set of operations that must
 be defined for a model. Model developers are free to name operations
 as they see fit, though Guild AI does encourage naming conventions.
 
-The \verb|train| operation---the act of training a model from
-scratch---for example, is an operation that most models
-support. However, the \verb|transfer-learn| operation---the act of
-transfering knowledge learned in one domain to another domain---is a
-form of training, but frequently appears in Guild AI models as an
-operation distinct from \verb|train|.
+Below are some common operation names:
+
+\begin{description}
+\item[prepare] prepare a dataset for training
+\item[train] train a model from scratch
+\item[transfer-learn] train a model using transfer learning
+\item[finetune] finetune a trained model
+\item[evaluate] evaluate a model
+\item[classify] use a trained model to classify inputs
+\item[compress] compress a trained model (e.g. using quantization,
+  etc.)
+\item[export-and-freeze] export a frozen inference
+  graph\footnote{TensorFlow specific}
+\item[tflite] generate a TF Lite file from a frozen
+  model\footnotemark[\value{footnote}]
+\end{description}
+
+This list illustrates that model operations can be used to perform a
+host of tasks beyond training and evaluation. In fact, well designed
+models can encompass all of the operations associated with a machine
+learning application development pipeline, from data acquisition and
+preparation to application deployment and monitoring.
 
 \subsection{Flags}
 
 \emph{Flags} are parameters that can be set or modified by users when
 they run an operation. Flags are used as inputs to the underlying code
 that implements an operation.
+
+Below is an example of using a flag to set the \emph{learning rate}
+for a \emph{train} operation.
+
+{\footnotesize
+\begin{verbatim}
+ $ guild run train learning-rate=0.0001
+\end{verbatim}}
 
 \subsection{Resources}
 \label{sec:resources}
@@ -398,11 +440,11 @@ cases, which are described below. In each case, the following roles
 may be referenced:
 
 \begin{description}
-    \item[user] person using a model developed by someone else
-    \item[developer] person developing a model, either from scratch or
-      adapting the work of others
-    \item[packager] person neither using nor developing a model but
-      who packages models created by developers for use by users
+\item[user] person using a model developed by someone else
+\item[developer] person developing a model, either from scratch or
+  adapting the work of others
+\item[packager] person neither using nor developing a model but who
+  packages models created by developers for use by users
 \end{description}
 
 \subsection{Publish a Model for Use}
@@ -411,28 +453,30 @@ may be referenced:
 A \emph{developer} may encourage others to use her model by
 documenting the steps needed to install, adapt, and use it. She may be
 motivated to simplify the user experience so that her work is more
-easily and succesfully applied. The benefit to her may be quality
+easily and successfully applied. The benefit to her may be quality
 feedback from expert users, improved reputation, a sense of
 contribution, or her colleagues may simply expect that work be
 documented and easy to use.
 
 While documenting the steps needed to use a model is undoubtedly
 helpful, the process is still burdensome for both the developer and
-her users. Guild AI can be used to simultaenously document model use
+her users. Guild AI can be used to simultaneously document model use
 but also directly support its use through model operations.
 
 Consider these instructions for model use, which might be documented
 for a project:
 
+\setlength{\parindent}{1em}
 \begin{enumerate}
-   \item Install required packages
-   \item Download the raw data
-   \item Prepare the raw data for training
-   \item Train the model
-   \item Export the trained model for deployment
+\item Install required packages
+\item Download the raw data
+\item Prepare the raw data for training
+\item Train the model
+\item Export the trained model for deployment
 \end{enumerate}
+\setlength{\parindent}{0em}
 
-While these steps provide invaulable information, they still rely on
+While these steps provide invaluable information, they still rely on
 the user to carefully execute them and troubleshoot issues as they
 arise. The process takes time and is subject to error at any step.
 
@@ -508,7 +552,7 @@ wheel distribution artifact.
 The flip side of the use case outline in
 Section~\ref{sec:publish-model} is that of the \emph{user}. A user is
 interesting in taking the work of a model developer and applying it,
-either by adapating her model to a new application or by integrating
+either by adapting her model to a new application or by integrating
 it as into another project.
 
 Users commonly rely on thorough documentation to effectively use
@@ -564,7 +608,7 @@ of a software \emph{packager} (or \emph{package maintainer}). The goal
 of a packager is to improve the value of a software distribution by
 creating high quality software packages that users find
 useful. Packers are often independent of the upstream software
-projects they package, serving as intermediaries betweeen the software
+projects they package, serving as intermediaries between the software
 developers and distribution users.
 
 Guild AI supports this pattern by allowing packagers to incorporate
@@ -662,21 +706,175 @@ license: Apache 2.0
 requires: [keras, Pillow, matlab]
 \end{lstlisting}
 
-Given a Guild file with such a package definition, Guild AI will
-generate a Python wheel distribution that can be used to install any
-models defined in the package.
+Given a Guild file with a package definition, develolpers can use
+Guild AI to generate a Python wheel distribution, which in turn can be
+used by users to install package models. Developers can also upload
+packages to PyPI to make the package available for search and
+installation.
+
+Guild AI models are installed like any other Python package. Users may
+use Guild AI to install the package:
+
+{\footnotesize
+\begin{verbatim}
+ $ guild install sample-project
+\end{verbatim}}
+
+Alternatively, a user may use pip:
+
+{\footnotesize
+\begin{verbatim}
+ $ pip install sample-project
+\end{verbatim}}
+
+Guild AI package requirements may be included in requirements files
+(e.g. \verb|requirements.txt|) or as dependencies of other Python
+package distributions.
+
+Package models are convenient for using models and their related
+functionality when a user doesn't need to modify the model source
+code. To use models and also have the option of modifying their source
+code, a user should use project models (Section
+\ref{sec:project-models}).
 
 \subsection{Project Models}
+\label{sec:project-models}
+
+Project models are defined in a project Guild file---i.e. a file named
+\verb|guild.yml| that resides in the top level of a projet
+directory. Users may run operations on project models by running them
+from within the project directory or by refering the project directory
+in the operation specified for the \verb|run| command.
+
+Project models are used by users or developers who expect to modify
+project files.
+
+Unlike packaged models, project models do not need to be installed
+using a command---they are available from the project itself. A user
+need only change to the project directory to run model operations.
 
 \subsection{Listing Available Models and Operations}
 
+A user may list available models using the \verb|guild models|
+command. This command lists packaged models and, if the command is run
+within a project, project models.
+
+Each model has one or more operations, which can be listed using the
+\verb|guild ops| command.
+
+The ability to discover available models and operations is a key
+feature enabling model use in Guild AI. Without formally defining
+these, users are left to their own to infer model capabilities from
+available documentation and source code.
+
 \subsection{Getting Help for Models}
+
+A user may use the \verb|guild help| command to get details about a
+model, its operations, operation flags, and resource
+dependencies. This is similar to the \emph{man} facility (ref) on many
+systems.
+
+A user may also get help for a particular operation by using the
+\verb|--help-op| option with the \verb|guild run| command. This is
+similar to the \verb|--help| option available for many programs.
+
+Figure~\ref{fig:op-help} contains sample help for the \verb|train|
+operation of the \verb|gpkg.mnist/cnn| package model.
+
+\begin{figure}
+  \begin{lstlisting}[]
+  Usage: guild run [OPTIONS] cnn:train
+  [FLAG]...
+
+  Train the CNN
+
+  Use 'guild run --help' for a list of
+  options.
+
+  Dependencies:
+    mnist-dataset  Yann Lecun's MNIST
+                   dataset in compressed
+                   IDX format
+
+  Flags:
+    batch-size  Number of images to
+                include in a training
+                batch (100)
+    epochs      Number of epochs to train
+                (10)
+  \end{lstlisting}
+  \caption{Sample operation help}
+  \label{fig:op-help}
+\end{figure}
+
+It is important to note that model and operation help is automatically
+generated from model descriptions. This facility lowers the cost of
+model documentation for developers and gives users a consistent
+interface for discovering model capabilities and intructions for using
+them.
 
 \subsection{Running Operations}
 
+Once a model is available---either as an installed package model or
+defined in a project---it can be used by running \emph{operations}. An
+operation is an action that can be performed on a model. Operations
+both \emph{define and implement} model capabilities. The act of using
+a model is the process of running operation.
+
+Operations may define an entire application development life cycle for
+one model or a host of models that work together.
+
+Section~\ref{sec:operations} lists common operation names.
+
+The act of running an operation starts a \emph{run}, which is both an
+operating process and a Guild AI managed file system artifact that
+contains run details including generated output.
+
+A user can run an operation using the \verb|guild run| command.
+
+Refer to Section~\ref{sec:runs} for information about managing runs.
+
 \subsection{Viewing and Comparing Runs}
 
-\subsection{Exporting Model Artifacts}
+As users and developers run model operations, they can view the
+results in various ways. Guild AI provides a comprehensive command
+line interface for managing runs, which is outlined in
+Section~\ref{sec:runs}.
+
+Guild AI also provides various methods for visualizing runs. Guild
+View is an application that is provided with Guild AI that launches a
+web application that can be used to view run details, including run
+files.
+
+Guild AI also integrates TensorBoard (ref) as a visualization tool,
+which can be used to view TensorFlow event logs that are generated by
+model operations.\footnote{Operations must explicitly write TensorFlow
+  event logs during a run to support TensorBoard visualization.}
+
+\subsection{Accessing Generated Artifacts}
+
+Operations generate \emph{artifacts}, which are Guild AI managed files
+stored on the local file system. Guild AI does not attempt to
+obfuscate generated artifacts---they are maintained in the run
+directory as written during the operation.
+
+Artifacts are routinely used as inputs to subsequent operations. For
+example, a TensorFlow checkpoint generated by a \verb|train| operation
+may be used as input to an \verb|export-and-freeze| operation, which
+in turn generates a frozen inference graph. This process is automatic
+and part of Guild AI's resource resolution process.
+
+Artifacts may also be accessed directly by users given their file
+system paths. A user can list the full paths for all files associated
+with a run using the \verb|guild runs info| command with the
+\verb|-ff| option. With these path, the user may copy the files or
+link to them as needed.
+
+Runs may also be \emph{exported} to a location using the
+\verb|guild export| command. Exported runs are copied (or moved, if
+the \verb|--move| option is specified) to a specified file system
+directory. This can be used to create backups or to transfer runs to
+another location.
 
 \section{Managing Runs}
 \label{sec:runs}
@@ -727,7 +925,7 @@ Listed runs may be filtered by status, operation, and label.
 Information about one or more runs may be displayed using the
 \verb|guild runs info| command. By default, high level run information
 such as the run ID, operation, start time, command, exit status, and
-operting system pid are displayed. Additional command options may be
+operating system pid are displayed. Additional command options may be
 used to view more run information including files, flag values,
 dependencies, and operation output.
 
@@ -782,7 +980,7 @@ guild COMMAND [ARG]...
 \end{verbatim}}
 
 Guild AI makes use of the Click Python library (ref) to implement its
-core command line processingn support.
+core command line processing support.
 
 \subsection{Configuration Processing}
 
@@ -812,7 +1010,7 @@ or more models, each running and verifying one or more operations.
 
 Guild AI packages are valid Python wheel distributions. The underlying
 libraries used to install Guild packages are the same as those used by
-the \verb|pip| pgrogram to install PyPI packages. As a result, Guild
+the \verb|pip| program to install PyPI packages. As a result, Guild
 AI can be used to install PyPI packages and pip can be used to install
 Guild AI packages---the process is the same in both cases.
 
@@ -827,12 +1025,12 @@ that.
 Guild AI provides various visualization tools, including its own run
 viewer (Guild View) and integration with TensorBoard (ref).
 
-Guild View is impemented using the VueJS library (ref) for the front
+Guild View is implemented using the VueJS library (ref) for the front
 end and Werkzeug (ref) for the HTTP API back end.
 
 \section{Status}
 
-Guild AI is freely available under the Apach 2.0 open source
+Guild AI is freely available under the Apache 2.0 open source
 license. It has been under active development for the last two years
 and undergone significant revision and updates during that time based
 on user feedback and real world application development.
@@ -849,108 +1047,6 @@ on user feedback and real world application development.
 \subsection{Early Use}
 
 \section{Summary}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\section{Typography}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Delete this to end of doc
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\subsection{Verbatim}
-
-{\footnotesize
-\begin{verbatim}
-dvips -Ppdf -tletter -G0 -o paper.ps paper.dvi
-ps2pdf paper.ps
-another line yo
-\end{verbatim}}
-
-You can copy the file by running \verb|cp foo bar| where \textit{foo}
-is some file you want to copy and \textit{bar} is something else.
-
-\subsection{Italics}
-
-\textit{Proceedings of the $\mathit{2}^{nd}$ SysML Conference}
-
-And \emph{this is for emphasis!}
-
-\subsection{Bold}
-
-I will \textbf{make this bold} yo.
-
-\subsection{Teletype}
-
-Set the value to \texttt{accepted} and everything will be okay.
-
-\subsection{Dots}
-
-ldots: \ldots
-
-dots: \dots
-
-\subsection{Less than, greater than}
-
-\textless{}email@domain.com\textgreater{}
-
-\subsection{Footnotes}
-
-You can use footnotes\footnote{Footnotes should be complete
-  sentences.} which will be super awesome. Don't ask me how it works.
-
-\subsection{Tables}
-
-\begin{table}[t]
-  \caption{Classification accuracies for naive Bayes and flexible
-    Bayes on various data sets.}
-  \label{sample-table}
-  \begin{center}
-    \begin{small}
-      \begin{sc}
-        \begin{tabular}{lcccr}
-          \toprule
-          Data set & Naive & Flexible & Better? \\
-          \midrule
-          Breast    & 95.9$\pm$ 0.2& 96.7$\pm$ 0.2& $\surd$ \\
-          Cleveland & 83.3$\pm$ 0.6& 80.0$\pm$ 0.6& $\times$\\
-          Glass2    & 61.9$\pm$ 1.4& 83.8$\pm$ 0.7& $\surd$ \\
-          Credit    & 74.8$\pm$ 0.5& 78.3$\pm$ 0.6&         \\
-          Horse     & 73.3$\pm$ 0.9& 69.7$\pm$ 1.0& $\times$\\
-          Meta      & 67.1$\pm$ 0.6& 76.5$\pm$ 0.5& $\surd$ \\
-          Pima      & 75.1$\pm$ 0.6& 73.9$\pm$ 0.5&         \\
-          Vehicle   & 44.9$\pm$ 0.6& 61.5$\pm$ 0.4& $\surd$ \\
-          \bottomrule
-        \end{tabular}
-      \end{sc}
-    \end{small}
-  \end{center}
-  \vskip -0.1in
-\end{table}
-
-Table \ref{software-vs-models} compares traditional software with
-reusable models.
-
-\begin{table}[h!]
-  \begin{center}
-    \caption{Traditional software vs reusable models.}
-    \label{software-vs-models}
-    \begin{small}
-      \begin{tabular}{l|l}
-        \toprule
-        \textbf{Traditional software} & Installed code \\ \hline
-        \textbf{Reusable models} & Installed code + trainable on novel data \\
-        \bottomrule
-      \end{tabular}
-    \end{small}
-  \end{center}
-\end{table}
-
-\subsection{Citations}
-
-I really like TensorFlow \cite{tensorflow2015-whitepaper}.
 
 \bibliography{paper}
 \bibliographystyle{sysml2019}
