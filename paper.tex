@@ -800,7 +800,7 @@ Figure~\ref{fig:op-help} contains sample help for the \verb|train|
 operation of the \verb|gpkg.mnist/cnn| package model.
 
 \begin{figure}
-  \begin{lstlisting}[]
+  \begin{lstlisting}
   Usage: guild run [OPTIONS] cnn:train
   [FLAG]...
 
@@ -893,6 +893,28 @@ Runs may also be \emph{exported} to a location using the
 the \verb|--move| option is specified) to a specified file system
 directory. This can be used to create backups or to transfer runs to
 another location.
+
+\subsection{Isolating Runs Using Environments}
+
+The discussion of using models to this point has not mentioned
+\emph{environments} as environment are optional for using Guild
+AI. However, environments are useful for isolating installed packages
+and runs on a system.
+
+When running Guild AI operations in an activated environment, the
+following are environment specific:
+
+\begin{itemize}
+\item Installed packages and therefore installed models
+\item Runs
+\end{itemize}
+
+Environments are created using the \verb|guild init| command. Once
+created, an environment must be explicitly activated using the
+\verb|source guild-env| command.
+
+Environments are useful isolating project level work. It's not uncommon
+to have separate environments for each project.
 
 \section{Managing Runs}
 \label{sec:runs}
@@ -1261,10 +1283,61 @@ the command \verb|guild install classifiers|.
         - operation: train
 \end{lstlisting}
 
-\subsection{Testing models}
+\subsection{Testing}
+
+Users may trust that installed packages have undergone testing before
+they being published. The goal of managing machine learning models as
+packages, after all, is to ensure that models work as advertised. In
+support of this goal, Guild AI lets developers and packagers specify
+tests that can be used to model integrity.
+
+Listing~\ref{lst:tests} contains two tests: one that verifies model
+help---ensuring that what the user sees when she runs
+\verb|guild help| is what the developer intendes---and another that
+exercises model operations and checks results.
+
+\begin{lstlisting}[
+    caption=Model tests,
+    label={lst:tests}]
+- test: help
+  steps:
+    - compare-help: test/help
+- test: model
+  steps:
+    - run-op: prepare-samples
+      flags:
+        images: test/samples
+    - run-op: train
+      expected:
+        - file: checkpoint
+    - run-op: evaluate
+      expected:
+        - scalar: accuracy > 0.7
+\end{lstlisting}
+
+The model test runs three operations: prepare-samples, train, and
+evaluate. The train step asserts that a checkpoint file exist, which
+confirms that the operation successfully saved a checkpoint. The
+evaluate step asserts that the accuracy for the trained model is at
+least 0.7.
+
+Tests can be run using the \verb|guild test| command.
+
+Tests may be run on an ad hoc basis or as a continuous integration
+release process.
 
 \subsection{Packaging}
 
+Our final point of discussion on the topic of model development is
+\emph{packaging}. Packaging consists of generating a Python wheel
+distribution that contains the Guild file and all supporting project
+code. The generated wheel distribution may be distributed internally
+within an organization or published to PyPI.
+
+Packages that are published to PyPI can be installed using the command
+\verb|guild install| or using pip.
+
+Packages are convenient for installing
 
 \section{Implementation}
 
