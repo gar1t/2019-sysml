@@ -418,6 +418,24 @@ system process associated with a running operation.
 
 Runs are described in detail in Section \ref{sec:runs}.
 
+\subsection{Run Directories}
+\label{sec:run-dir}
+
+A \emph{run directory} is a directory used for a run. During a run
+operation, the run directory is the system current working
+directory. Operations should write run artifacts within the current
+working directory to ensure that they are associated with the run.
+
+By default, Guild AI generates a new directory for each run and
+creates links to required resource sources within that directory. Once
+the directory is prepared, Guild AI starts the run operating system
+process, which then may access sources within the current working
+directory.
+
+Users may optionally specify an alternative run directory for a
+run. This is commonly used by model developers during the process of
+implementing model operation.s
+
 \subsection{Environments}
 
 Guild AI supports \emph{environments}, which are isolated runtime
@@ -937,31 +955,316 @@ command. Runs may be deleted using status, operation, or label.
 Guild AI will restore deleted runs with \verb|guild runs restore| and
 permanently delete runs using \verb|guild runs purge|.
 
-\section{Developing Reusable Models}
+\section{Developing Models}
+
+As discussed above, published models---deployed from installed
+packages or as projects---can be used by running model
+\emph{operations}. Operations generate \emph{artifacts} that can be
+used in subsquent operations or as final outputs in an application
+development workflow.
+
+In this section we discuss how such models are created using Guild AI.
 
 \subsection{Developing a Model from Scratch}
 
-- How to choose a model boundary?
+When developing a model from scratch, a developer may ask two
+questions:
 
-- How to define operations
+\begin{itemize}
+\item What is the defining characteristic of the model?
+\item What can users do with the model?
+\end{itemize}
 
-\subsection{Customizing Models}
+The answers to these questions will inform the decision of what to
+name the model and its operations. These values can be stubbed out in
+a Guild file to provide a scaffold for implementation.
 
-\subsubsection{Model Inheritance}
+In many cases, this is simply a matter of selecting a model name and
+creating a \verb|train| operation. Listing~\ref{lst:pet-stub}
+illustrates a straightforward pet classifier.
 
-\subsubsection{Configuration Mixins}
+\begin{lstlisting}[
+    caption=Sample Guild file for a pet classifier,
+    label={lst:pet-stub}]
+model: pets
+description:
+  Pet classifier using a CNN
+operations:
+  train:
+    description: Train the classifier
+    main: train
+    flags:
+      images:
+        description:
+          Directory containing the pet
+          images to train
+        required: yes
+      epochs:
+        description:
+          Number of epochs to train
+        default: 100
+\end{lstlisting}
 
-\subsubsection{Modifying Operations}
+With even a simple stub, a developer can formalize the model and what
+it does. This stage clarifies the model's user interface before the
+functionality is implemented.
 
-\subsubsection{Modifying Flag Values}
+With a basic skeleton in place, the developer can implement model
+operations. In the case of the pet classifier
+(Listing~\ref{lst:pet-stub}) this means implementing training support
+in a file named \verb|train.py| that resides in the project directory.
+
+Operations can be developed and tested early on using Guild AI. Each
+time \verb|guild run| is used to test an operation, Guild AI generates
+a distinct, trackable run. Runs may be compared over time to help
+answer questions or resolve issues.
+
+Guild AI provides two additional mechanisms to help model developers
+implement operations. Both effect the \emph{run directory}
+(Section~\ref{sec:run-dir}) used by Guild AI.
+
+The first is the use the \verb|--run-dir| option
+to the \verb|guild run| command. This option may be used to specify an
+alternative directory for the run. This is helpful when the developer
+doesn't want to generate new runs for early stage opertion
+development.
+
+The second mechanism is the use of the \verb|--stage| option to the
+\verb|guild run| command. This option may be used to stage a run in an
+alternative directory without running the operation. This is helpful
+when the developer wants to study the run directory layout or to run
+low level commands or scripts during the development process.
+
+The developer can continue to evolve the model operations as needed to
+satisfy user requirements. This may include new operations or
+additional operation flags, which give users more flexibility when
+running an operation. The developer may similarly add new models to
+the Guild file.
+
+\subsection{Adapting Existing Model Code}
+
+In many cases, a developer will already have working model code she
+wants to incorporate into a formalized model definition. As with the
+role of \emph{packger} (Section~\ref{sec:package-maintainer}), a
+developer may even be required to work with upstream sources she
+cannot easily change. Guild AI provides a number of features that
+support the adaptation of existing model code into usable models.
+
+The operation \verb|main| attribute specifies a Python main module to
+run. In many cases, a developer can simply reference an existing
+Python script to incorporate it into an operation. In cases where a
+script doesn't already exist---for example, the model code is in a
+Jupyter Notebook and not readily usable---the developer should create
+a new script that contains the applicable model code and use it for an
+operation.
+
+Operation \emph{flags} specified in the form \verb|NAME=VALUE| as
+arguments to the \verb|guild run| command are passed to the Python
+main module as command line arguments in the form
+\verb|--NAME VALUE|. For example, assuming an operation \verb|train|
+with a main module \verb|train|, the command
+\verb|guild run train epochs=100| would be translated to the Python
+command \verb|python -m train --epochs 100|. In this way developers
+can parameterize scripts via operation flags.\footnote{It is standard
+  practice to use Python's argparse module to support named command
+  line options following the getopt convention (ref) in a Python
+  script.}
+
+If a flag name doesn't correspond to the option name expected
+(e.g. the train script expected the option \verb|num_epochs|) the
+developer can specify an alternative argument name for a flag using
+the \verb|arg-name| attribute.
+
+\subsection{Patching}
+
+In cases where a developer cannot modify upstream sources or chooses
+not to (e.g. to simplify ongoing mainteance) he may choose to patch
+model sources for use in a model. Guild AI supports two methods of
+patching.
+
+The first method is to run a post processing script on required model
+sources. This can be specified using a \verb|post-process| command for
+a model source that applies patch files to upstream sources. Guild AI
+will use the patched versions for related operations.
+
+The second method is to wrap upstream scripts and monkey patch (ref)
+the Python environment as needed to change behavior. An example of
+this can be found in the \verb|gpkg.slim| package, which patches the
+TensorFlow \verb|slim.losses.softmax_cross_entropy| module to add
+support for balanced weight training. This technique successfully adds
+a useful feature while avoiding the need to modify the upstream train
+support in TF Slim.\footnote{While one could argue that it would be
+  better to submit a pull request with the new functionality to
+  upstream authors, there are always cases where this is not an
+  option. Patching in these cases may be the only way to fix issues or
+  add features.}
+
+\subsection{Model Definition Reuse}
+
+Guild AI provides a number of features that support model definition
+reuse.
+
+\subsubsection{Configuration Inheritance}
+
+Guild files may contain \verb|config| section that contain arbitrary
+configuration, which can be inherited by
+models. Listing~\ref{lst:inheritance} defines two models, each
+inheriting the properties of shared config. The shared config
+\verb|model-base| defines the common model operations and uses
+\emph{parameters} to define a model name and default learning rate.
+
+\begin{lstlisting}[
+    caption=Configuration inheritance,
+    label={lst:inheritance}]
+- config: model-base
+  operations:
+    train:
+      main: train --model {{model-name}}
+      flags:
+        epochs: 100
+        learning-rate: {{default-lr}}
+
+- model: logreg
+  extends: model-base
+  params:
+    model-name: logreg
+    default-lr: 0.01
+
+- model: cnn
+  extends: model-base
+  params:
+    model-name: cnn
+    default-lr: 0.0001
+\end{lstlisting}
+
+Configuation inheritance can be applied across Guild files---e.g. to
+configuration defined in packages or other projects. This is useful
+for extending model definitions from other
+developers. Listing~\ref{lst:extend-slim} demonstrates how a model can
+inherit all of the operations of another model with a single line of
+configuration.
+
+\begin{lstlisting}[
+    caption=Extending PNASNet Mobile,
+    label={lst:extend-slim}]
+- model: my-classifier
+  extends: gpkg.slim.models/pnasnet-mobile
+\end{lstlisting}
+
+Configuration inheritance has proven effective at managing complex
+model configuration. This is evident in the \verb|gpkg.slim| and
+\verb|gpkg.object-detection| packages, which make extensive use of
+configuration inheritance to simplify their respective Guild files.
+
+\subsubsection{Configuration Includes}
+
+Configuration may also be reused by including shared configuration
+files using \verb|include| objects. Listing~\ref{lst:shared} and
+Listing~\ref{lst:include-shared} illustrate how includes can be used.
+
+\begin{lstlisting}[
+    caption=Shared configuration (e.g. defined in shared.yml),
+    label={lst:shared}]
+- config: model-base
+  operations:
+    train: train
+\end{lstlisting}
+
+\begin{lstlisting}[
+    caption=Use of includes (e.g. defined in guild.yml),
+    label={lst:include-shared}]
+- include: shared.yml
+
+- model: model-a
+  extends: model-base
+
+- model: model-b
+  extends: model-base
+\end{lstlisting}
+
+Includes may also be used to merge shared configuration into other
+configuration. Listing~\ref{lst:include-flags} illustrates how shared
+configuration can be included into operation flags. The special
+attribute \verb|$include| signifies that the corresponding value
+defined in the referenced config should be merged into the current
+value. The value for \verb|$include| can be a list to merge from
+multiple sources. In the example, the value for \verb|learning-rate|
+is redefined in the operation.
+
+\begin{lstlisting}[
+    caption=Including shared flag configuration,
+    label={lst:include-flags}]
+- config: default-train-flags
+  flags:
+    epochs: 100
+    batch-size: 32
+    learning-rate: 0.01
+
+- model: sample
+  operations:
+    train:
+      main: train
+      flags:
+        $include: default-train-flags
+        learning-rate: 0.001
+\end{lstlisting}
 
 \subsubsection{Reusing Python Main Modules}
+
+The final method of model definition reuse described is that of
+\emph{Python main module reuse}. Main modules---i.e. the modules
+referenced in an opertion \verb|main| specification---may reside in
+any installed Python package. To reuse the main module, a developer
+need only include the package reference in the main specification.
+
+Listing~\ref{lst:tflite_convert} illustates the use of the TensorFlow
+module \verb|tflite_convert| to generte a TF Lite file for an
+operation.
+
+\begin{lstlisting}[
+    caption=Reusing a Python main module,
+    label={lst:tflite_convert}]
+model: sample
+operations:
+  tflite:
+    main: tensorflow/contrib/lite/python/tflite_convert
+\end{lstlisting}
+
+Developers may create packages of reusable modules that can be easily
+used to implement model operations. For example, consider an
+organization that runs a specialized inference server that hosts
+models deployed using an HTTP POST interface. The model development
+team might create a package \verb|server-utils| that contains a Python
+main module \verb|server_utils.deploy| that performs the
+deployment.
+
+Listing~\ref{lst:deploy} illustrates how such a facility could be
+easily incorporated into a model to enable deployments. In the
+example, the model is defined in a package that requires the
+\verb|server-utils| package, which will be automatically installed by
+the command \verb|guild install classifiers|.
+
+\begin{lstlisting}[
+    caption=Quickly enabling model deploy,
+    label={lst:deploy}]
+- package: classifiers
+  requires: [server-utils]
+
+- model: resnet-classifier
+  operations:
+    train: resnet_train
+    deploy: server_utils.deploy
+    requires: trained-model
+  resources:
+    trained-model:
+      sources:
+        - operation: train
+\end{lstlisting}
 
 \subsection{Testing models}
 
 \subsection{Packaging}
 
-\subsection{Patching Strategies}
 
 \section{Implementation}
 
