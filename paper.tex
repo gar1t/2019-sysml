@@ -83,8 +83,8 @@
   ecosystems. Examples include npm for JavaScript \cite{npm}, APT for
   Debian \cite{apt}, and pip for Python \cite{pip}. Such tools excel
   at creating traditional software packages. Machine learning
-  applications however present unique requirements that call for tool
-  specialization. Guild AI combines the proven effectiveness of
+  applications, however, present unique requirements that call for
+  tool specialization. Guild AI combines the proven effectiveness of
   package managers with novel features to enable machine learning
   model reuse for application development across a variety of use
   cases.
@@ -116,12 +116,12 @@ context of machine learning.
 
 Packaged software is software that is organized in a way that can be
 easily installed and used by \emph{users}. A user is a consumer of
-software, rather than a producer or developer. A user may be software
-developer, in the case of consuming software libraries or frameworks,
-or she may be an end-user who uses software as a program with a
-graphical or command line interface. In both cases, packaged software
-may be provided in units that the user can install and start using
-quickly and reliably.
+software, rather than a producer or developer. A user may be a
+software developer, in the case of consuming software libraries or
+frameworks, or she may be an end-user who uses software as a program
+with a graphical or command line interface. In both cases, packaged
+software may be provided in units that the user can install and begin
+using quickly and reliably.
 
 This is an example of installing packaged software:
 
@@ -131,7 +131,7 @@ This is an example of installing packaged software:
 \end{verbatim}}
 
 By running this command, a user is using a \emph{package manager}---in
-this case the program \texttt|pip|---to install a package named
+this case the program \verb|pip|---to install a package named
 \verb|tensorflow|. With this innocuous command, the user implicitly expects
 a number of things:
 
@@ -139,20 +139,20 @@ a number of things:
 \item The Python module \verb|tensorflow| should be installed.
 \item Additional Python modules required by \verb|tensorflow| should
   also be installed.
-\item Installed software should work as expected on the target system.
+\item Installed software will work as expected on the target system.
 \item At a future date \verb|tensorflow| may be similarly uninstalled
   along with its no-longer-used required packages.
 \item The act of installing and uninstalling \verb|tensorflow| should
   not break or otherwise destabilize other installed software on the
-  target system.
+  system.
 \end{itemize}
 
 Such package management facilities are essential to code reuse at the
 system level. Package managers allow users to maintain complex
 software systems with simple commands in a way that preserves their
 integrity. They support rapid experimentation with new software as
-users are free to install, use, and evaluate packages with the
-confidence that they can safely remove that software later.
+users are free to install and evaluate packages with the confidence
+that they can safely remove that software later.
 
 \iffalse
 Package managers promote healthy software ecosystems by facilitating
@@ -175,9 +175,9 @@ software reuse across languages and operating systems.
 A \emph{machine learning model} is challenging to define as models
 have different contexts. In the most general context, models are
 mathematical concepts or language that represents a system. In the
-context of machine learning, models may be represented by computer
-source code, either explicitly as declared structures, or implicitly
-by way of executable instructions that perform model related tasks. A
+context of machine learning, models may be represented by source code,
+either explicitly as declared structures, or implicitly by way of
+executable instructions that perform model related tasks. A
 \emph{trained model} is a model that has learned some representation
 of a system through an automated process of optimization.
 
@@ -211,7 +211,7 @@ management that incorporates \emph{model operations} and \emph{run
 
 \subsection{Related Work}
 
-\subsubsection{Model zoos}
+\subsubsection{Model Zoos}
 
 A common approach to sharing and reusing machine learning models is a
 \emph{model zoo}---an online repository of reusable models that
@@ -323,9 +323,9 @@ operations:
 \subsection{Packages}
 
 A Guild AI \emph{package} is a Python wheel distribution \cite{wheels}
-that was generated using the \verb|guild package| command. Guild AI
-packages are generated using \verb|setuptools|. They contain Guild AI
-specific metadata that advertises models they contain.
+that was generated using the \verb|guild package| command. They
+contain Guild AI specific metadata that advertises models they
+contain.
 
 \subsection{Models}
 
@@ -391,7 +391,7 @@ for a \emph{train} operation.
 
 A Guild AI \emph{resource} represents a set of source files that can
 be made available as inputs to a model operation. Resources play an
-important role in Guild AI's ability to effective use
+important role in Guild AI's ability to effectively use
 models. Resources can be used to resolve project files, download files
 from URLs, unpack archives, and reference files generated by other
 operation.
@@ -431,22 +431,20 @@ Runs are further described in Section \ref{sec:runs}.
 \label{sec:run-dir}
 
 A \emph{run directory} is a directory used for a run. When an
-operation is run, the run directory is used as the operating system
-process working directory. Operations should write run artifacts
-within the working directory to ensure they are associated with the
-run.
+operation is run, the run directory is used as the process working
+directory. Operations should write run artifacts within the working
+directory to ensure they are associated with the run.
 
 By default, Guild AI generates a new directory for each run and
 creates links to required sources within that directory. Once the
-directory is prepared, Guild AI starts the run operating system
+directory is prepared with required sources, Guild AI starts the run
 process, which may read sources within the run directory.
 
 \subsection{Environments}
 
 Guild AI supports \emph{environments}, which are isolated runtime
 environments used for installing and using models. Guild AI supports
-environments created using
-\href{https://virtualenv.pypa.io}{\emph{virtualenv}}.
+environments created using {\emph{virtualenv} \cite{venv}.
 
 \subsection{Workflows}
 
@@ -893,7 +891,7 @@ link to them as needed.
 
 Runs may also be \emph{exported} to a location using the
 \verb|guild export| command. Exported runs are copied---or moved, if
-specified---to a specified file system directory. This can be used to
+specified---to a different file system directory. This can be used to
 create backups or to transfer runs to another location.
 
 \subsection{Isolating Runs Using Environments}
@@ -903,11 +901,11 @@ The discussion of using models to this point has not mentioned
 AI. Environments are useful, however, for isolating installed packages
 and runs on a system.
 
-When running Guild AI operations in an activated environment, the
+When running Guild AI commands in an activated environment, the
 following are environment specific:
 
 \begin{itemize}
-\item Installed packages and therefore installed models
+\item Installed packages and models
 \item Runs
 \end{itemize}
 
@@ -974,7 +972,7 @@ dependencies, and operation output.
 \subsection{Deleting Runs}
 
 One or more runs may be deleted using the \verb|guild runs rm|
-command. Runs may be deleted using status, operation, or label.
+command. Runs may be deleted by status, operation, or label.
 
 Guild AI will restore deleted runs with \verb|guild runs restore| and
 permanently delete runs using \verb|guild runs purge|.
@@ -1289,7 +1287,7 @@ package, which will be automatically installed by the command
 
 \begin{figure}
 \begin{lstlisting}[
-    caption=Quickly enabling model deploy,
+    caption=Enabling model deploy,
     label={lst:deploy}]
 - package: classifiers
   requires: [server-utils]
@@ -1417,14 +1415,14 @@ end and Werkzeug (ref) for the HTTP API back end.
 
 \section{Status}
 
-Guild AI is freely available under the Apache 2.0 open source
+Guild AI is freely available under the Apache 2.0 \cite{guild} open source
 license. It has been under active development for the last two years
 and undergone significant revision and updates during that time based
 on user feedback and real world application development.
 
 There have been several packaging initiatives that have produced
-reusable models \cite{pkg} that fulfill the goals
-outlined in this paper. Specifically, the packages support:
+reusable models \cite{pkg} that fulfill the goals outlined in this
+paper:
 
 \begin{itemize}
 \item Use without code changes
